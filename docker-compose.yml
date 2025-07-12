@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  # Define the service for our Gemini API
+  gemini_app:
+    # Build the Docker image from the Dockerfile in the current directory
+    build: .
+    
+    # Set a container name for easier management
+    container_name: gemini_service_container
+    
+    # Load environment variables from the .env file
+    # This securely passes the GOOGLE_API_KEY to the container
+    env_file:
+      - .env
+      
+    # Map port 8000 of the container to port 8000 on the host machine
+    ports:
+      - "8000:8000"
+      
+    # Automatically restart the container if it stops
+    restart: always
