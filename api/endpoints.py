@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, Body
-from services.gemini_service import generate_product_json, GeminiException
+from services.gemini_service import generate_product_json, GeminiException, get_api_status
 from schemas.product import ProductDescriptionRequest, ProductJSONResponse
 
 # Create a new router
@@ -29,3 +29,36 @@ async def generate_description_endpoint(
     except Exception as e:
         # Catch any other unexpected errors
         raise HTTPException(status_code=500, detail=f"An unexpected error occurred: {e}")
+
+@router.get(
+    "/api-status",
+    summary="Get Gemini API Keys Status",
+    description="Returns the current status of all configured Gemini API keys, including which keys are active, failed, and available."
+)
+async def get_api_status_endpoint():
+    """
+    Returns information about the API key pool status:
+    - Total number of configured keys
+    - Currently active key index
+    - List of temporarily failed keys
+    - Number of available keys
+    - Retry configuration
+    """
+    try:
+        status = get_api_status()
+        return {
+            "status": "operational",
+            "api_keys": {
+                "total": status["total_keys"],
+                "current_active": status["current_key_index"],
+                "failed": status["failed_keys"],
+                "available": status["available_keys"]
+            },
+            "configuration": {
+                "max_retries_per_key": status["max_retries_per_key"],
+                "retry_delay_seconds": status["retry_delay"]
+            },
+            "message": f"System has {status['available_keys']} available API keys out of {status['total_keys']} configured."
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get API status: {e}")
